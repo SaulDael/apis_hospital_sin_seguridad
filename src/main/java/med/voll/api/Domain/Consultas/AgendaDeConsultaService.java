@@ -1,16 +1,20 @@
 package med.voll.api.Domain.Consultas;
 
 import med.voll.api.Domain.Consultas.Validaciones.ValidadorDeConsultas;
+import med.voll.api.Domain.Consultas.Validaciones.ValidadrorCancelamientoConsulta;
 import med.voll.api.Domain.Medicos.Medico;
 import med.voll.api.Domain.Medicos.MedicoRepository;
 import med.voll.api.Domain.Pacientes.PacienteRepository;
 import med.voll.api.INFRA.Excepciones.ValidacionDeIntegridad;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@SuppressWarnings("all")
 public class AgendaDeConsultaService {
     @Autowired
     private PacienteRepository pacienteRepository;
@@ -21,6 +25,8 @@ public class AgendaDeConsultaService {
 
     @Autowired
     List<ValidadorDeConsultas> validadores;
+
+    private List<ValidadrorCancelamientoConsulta> validadrorCancelamientoConsultas;
 
     public DatosDetallesConsulta agendar(DatosAgendarConsulta datos) {
 
@@ -43,7 +49,7 @@ public class AgendaDeConsultaService {
         }
 
 
-        var consulta = new Consulta(null, medico, paciente, datos.fecha());
+        var consulta = new Consulta(medico, paciente, datos.fecha());
 
         consultaRepository.save(consulta);
 
@@ -58,5 +64,20 @@ public class AgendaDeConsultaService {
             throw new ValidacionDeIntegridad("Debe seleccionarse una especialidad para el medico");
         }
         return medicoRepository.seleccionarMedicoConEspecialidadEnFecha(datos.especialidad(), datos.fecha());
+    }
+
+    public  void cancelar(DatosCancelarConsulta datos){
+        if(!consultaRepository.existsById(datos.idConsulta())){
+            throw new ValidacionDeIntegridad("ID de consulta no existe");
+        }
+
+        validadrorCancelamientoConsultas.forEach(v -> v.valida(datos));
+
+        var consulta = consultaRepository.getReferenceById(datos.idConsulta());
+        consulta.cancelar(datos.motivoCancelamiento());
+    }
+
+    public Page<DatosDetallesConsulta> consultar(Pageable paginacion){
+        return consultaRepository.findAll(paginacion).map(DatosDetallesConsulta::new);
     }
 }

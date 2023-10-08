@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/login")
+@CrossOrigin("http://localhost:4200/login")
 public class UserController {
 
     @Autowired

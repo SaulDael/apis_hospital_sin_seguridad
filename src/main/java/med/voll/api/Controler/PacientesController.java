@@ -16,6 +16,7 @@ import java.net.URI;
 
 @RestController
 @RequestMapping("/api/v1/pacientes")
+@CrossOrigin(origins = "http://localhost:4200/listarPacientes")
 public class PacientesController {
 
     @Autowired
@@ -37,7 +38,7 @@ public class PacientesController {
 
     @GetMapping
     @RequestMapping("/listadoPacientes")
-    public ResponseEntity<Page<DatosListadoPaciente>> listadoPacientes(@PageableDefault(size = 4) Pageable paginacion){
+    public ResponseEntity<Page<DatosListadoPaciente>> listadoPacientes(@PageableDefault(size = 10) Pageable paginacion){
         // return ResponseEntity.ok(pacienteRepository.findAll(paginacion).map(DatosListadoPaciente::new));
         return  ResponseEntity.ok(pacienteRepository.findByActivoTrue(paginacion).map(DatosListadoPaciente::new));
     }
